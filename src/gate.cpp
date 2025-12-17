@@ -1,8 +1,7 @@
 #include "gate.h"
-#include <iostream>
 
 /* *** Helper Functions *** */
-void draw_half_circle(SDL_Renderer* renderer, int x, int y, int radius) {
+void draw_left_half_circle(SDL_Renderer* renderer, int x, int y, int radius) {
     for (int w = -radius; w <= 0; w++) {
         for (int h = -radius; h <= radius; h++) {
             if (w*w + h*h <= radius*radius) {
@@ -12,104 +11,110 @@ void draw_half_circle(SDL_Renderer* renderer, int x, int y, int radius) {
     }
 }
 
+void draw_right_half_circle(SDL_Renderer* renderer, int x, int y, int radius) {
+    for (int w = 0; w <= radius; w++) {
+        for (int h = -radius; h <= radius; h++) {
+            if (w*w + h*h <= radius*radius) {
+                SDL_RenderDrawPoint(renderer, x + w, y + h);
+            }
+        }
+    }
+}
+
+/* *** Pin Functions *** */
+Pin::Pin() {
+    x = 0;
+    y = 0;
+    value = false;
+}
+
+Pin::Pin(int given_x, int given_y, bool given_value) {
+    x = given_x;
+    y = given_y;
+    value = given_value;
+}
+
+Pin::Pin(bool given_value) {
+    x = 0;
+    y = 0;
+    value = given_value;
+}
+
+std::string Pin::to_string() {
+    return value ? "true" : "false";
+}
+
+void Pin::draw(SDL_Renderer* renderer, bool is_left) {
+    if (is_left) {
+        draw_left_half_circle(renderer, x, y, 10);
+    } else {
+        draw_right_half_circle(renderer, x, y, 10);
+    }
+}
+
 /* *** Gate Functions *** */
-Gate::Gate(bool val) {
-    bool output = val;
-    
-    p_inputs = nullptr;
-    p_outputs = nullptr;
-    num_inputs = 0;
-    
-
-    evaluated = true;
-
-    //set to a position offscreen so that if accidentally drawn it won't show up
-    int x = -100;
-    int y = -100;
-}
-
 Gate::Gate() {
-    bool output = false;
+    //boolean representations of inputs and outputs
+    in[0] = false;
+    in[1] = false;
+    out = false;
     
-    p_inputs = nullptr;
-    p_outputs = nullptr;
-    num_inputs = 0;
-    
-
-    evaluated = true;
-
-    //set to a position offscreen so that if accidentally drawn it won't show up
-    int x = -100;
-    int y = -100;
-}
-
-void Gate::evaluate() {
-    output = inputs[0];
+    //physical position
+    x = 0;
+    y = 0;
+    w = 100;
+    h = 50;
 }
 
 std::string Gate::to_string() {
     std::stringstream gate;
-    gate << "Gate: (" << inputs[0] << ", " << inputs[1] << ") -> " << output << "\n";
+    gate << "Gate: (" << in[0] << ", " << in[1] << ") -> " << out << "\n";
 
     return gate.str();
 }
 
-void Gate::draw(SDL_Renderer* renderer) {
-    rect.x = x;
-    rect.y = y;
-    
-    //input nodes
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    draw_half_circle(renderer, x, y+15, 10);
-    draw_half_circle(renderer, x, y+40, 10);
+void Gate::update_pins() {
+    pin_in[0].x = x;
+    pin_in[0].y = y + h/3;
+    pin_in[1].x = x;
+    pin_in[1].y = y + 2*h/3;
+    pin_out.x = x+w;
+    pin_out.y = y + h/2;
+}
 
-    //General is black 
+void Gate::draw_pins(SDL_Renderer* renderer) {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    SDL_RenderFillRect(renderer, &rect);
+    pin_in[0].draw(renderer, true);
+    pin_in[1].draw(renderer, true);
+    pin_out.draw(renderer, false);
+}
+
+SDL_Rect Gate::get_rect() {
+    return SDL_Rect{ x, y, w, h };
 }
 
 /* *** AND Functions *** */
-And::And(bool input1, bool input2, int given_x, int given_y) {
-    inputs[0] = input1;
-    inputs[1] = input2;
-    
-    Gate** p_inputs = nullptr;
-    Gate** p_outputs = nullptr;
-    num_inputs = 0; 
-
-    evaluated = false;
-    
+And::And(int given_x, int given_y) {
     x = given_x;
     y = given_y;
-
-    rect.x = x;
-    rect.y = y;
-    rect.w = block_width;
-    rect.h = block_height;
-    
-    //sets output correctly
-    evaluate();
+    update_pins();
 }
 
 std::string And::to_string() {
     std::stringstream gate;
-    gate << "And: (" << inputs[0] << ", " << inputs[1] << ") -> " << output << "\n";
+    gate << "And: (" << in[0] << ", " << in[1] << ") -> " << out << "\n";
 
     return gate.str();
 }
 
 void And::evaluate() {
-    output = inputs[0] && inputs[1];
+    out = in[0] && in[1];
 }
 
 void And::draw(SDL_Renderer* renderer) {
-    rect.x = x;
-    rect.y = y;
+    SDL_Rect rect = { x, y, h, w };
     
-    //input nodes
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    draw_half_circle(renderer, x, y+15, 10);
-    draw_half_circle(renderer, x, y+40, 10);
+    draw_pins(renderer);    
 
     //AND is green
     SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
@@ -117,47 +122,28 @@ void And::draw(SDL_Renderer* renderer) {
 }
 
 /* *** OR Functions *** */
-Or::Or(bool input1, bool input2, int given_x, int given_y) {
-    inputs[0] = input1;
-    inputs[1] = input2;
-    
-    Gate** p_inputs = nullptr;
-    Gate** p_outputs = nullptr;
-    num_inputs = 0; 
-
-    evaluated = false;
-
+Or::Or(int given_x, int given_y) {
     x = given_x;
     y = given_y;
-    
-    rect.x = x;
-    rect.y = y;
-    rect.w = block_width;
-    rect.h = block_height;
-
-    //sets output correctly
-    evaluate();
+    update_pins(); 
 }
 
 std::string Or::to_string() {
     std::stringstream gate;
-    gate << "Or: (" << inputs[0] << ", " << inputs[1] << ") -> " << output << "\n";
+    gate << "Or: (" << in[0] << ", " << in[1] << ") -> " << out << "\n";
 
     return gate.str();
 }
 
 void Or::evaluate() {
-    output = inputs[0] || inputs[1];
+    out = in[0] || in[1];
 }
 
 void Or::draw(SDL_Renderer* renderer) {
-    rect.x = x;
-    rect.y = y;
+    SDL_Rect rect = { x, y, h, w }; 
     
     //input nodes
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    draw_half_circle(renderer, x, y+15, 10);
-    draw_half_circle(renderer, x, y+40, 10);
+    draw_pins(renderer); 
 
     //OR is blue
     SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
@@ -165,45 +151,38 @@ void Or::draw(SDL_Renderer* renderer) {
 }
  
 /* *** NOT Functions *** */
-Not::Not(bool input, int given_x, int given_y) {
-    inputs[0] = input;
-    
-    Gate** p_inputs = nullptr;
-    Gate** p_outputs = nullptr;
-    num_inputs = 0; 
-
-    evaluated = false;
-
+Not::Not(int given_x, int given_y) {
     x = given_x;
     y = given_y;
-    
-    rect.x = x;
-    rect.y = y;
-    rect.w = block_width;
-    rect.h = block_height;
 
-    //sets output correctly
-    evaluate();
+    update_pins(); 
+}
+
+void Not::update_pins() {
+    pin_in[0].x = x;
+    pin_in[0].y = y + h/2;
+    pin_out.x = x+w;
+    pin_out.y = y + h/2;
 }
 
 std::string Not::to_string() {
     std::stringstream gate;
-    gate << "Not: (" << inputs[0] << ") -> " << output << "\n";
+    gate << "Not: (" << in[0] << ") -> " << out << "\n";
 
     return gate.str();
 }
 
 void Not::evaluate() {
-    output = !inputs[0];
+    out = !in[0];
 }
 
 void Not::draw(SDL_Renderer* renderer) {
-    rect.x = x;
-    rect.y = y;
+    SDL_Rect rect = { x, y, w, h }; 
     
     //input nodes
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    draw_half_circle(renderer, x, y+27, 10);
+    draw_left_half_circle(renderer, x, y + h/2, 10);
+    draw_right_half_circle(renderer, x+w, y + h/2, 10);
 
     //NOT is red 
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);

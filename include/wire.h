@@ -8,22 +8,16 @@ constexpr int wire_height = 5;
 
 class Wire {
 public:
-    int x;
-    int y;
+    Input* input;
+    Gate* src_gate;
+    Gate* dst_gate;
+    int dst_idx;
     
-    //0 = not assigned
-    //1 = width
-    //2 = height
+    //0 = not set
+    //1 = horizontal first
+    //2 = vertical first
     int first;
-    
-    int width;
-    int height;
-    
-    Gate* src;
 
-    Wire(Input* input);
+    Wire(Input* given_input);
     Wire(Gate* gate);
-    void draw(SDL_Renderer* renderer);
-    void connect(Input* input, Gate* gate);
-    void connect(Gate* input, Gate* gate);
 };

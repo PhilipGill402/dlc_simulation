@@ -4,6 +4,8 @@ Input::Input(int given_x, int given_y) {
     x = given_x;
     y = given_y;
     val = false;
+    pin_out.x = given_x;
+    pin_out.y = given_y;
 }
 
 void Input::toggle() {

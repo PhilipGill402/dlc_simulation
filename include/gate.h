@@ -1,43 +1,51 @@
 #pragma once
 #include <SDL.h>
 #include <sstream>
+#include <vector>
 
-constexpr int block_width = 100;
-constexpr int block_height = 55;
+class Pin {
+public:
+    int x;
+    int y;
+    bool value;
+    
+    Pin();
+    Pin(bool given_value);
+    Pin(int given_x, int given_y, bool given_value);
+    std::string to_string();
+    void draw(SDL_Renderer* renderer, bool is_left);
+};
 
 class Gate{
 public:
     //boolean representations of inputs and outputs
-    bool inputs[2];
-    bool output;
+    bool in[2];
+    bool out;
     
-    //pointers to inputs and outputs
-    Gate** p_inputs;
-    Gate** p_outputs;
-    int num_inputs;
-    
-
-    //set to true once the gates output has been evaluated
-    bool evaluated;
-
+    //holds the pins of the gate
+    Pin pin_in[2];
+    Pin pin_out;
+     
     //physical position
     int x;
     int y;
+    int w;
+    int h;
     
-    //rect for drawing the gate
-    SDL_Rect rect;
-
     virtual ~Gate() = default;
     Gate(bool val);
     Gate();
-    virtual void evaluate();
+    virtual void evaluate() = 0;
+    virtual void draw(SDL_Renderer* renderer) = 0;
     virtual std::string to_string();
-    virtual void draw(SDL_Renderer* renderer);
+    virtual void update_pins();
+    void draw_pins(SDL_Renderer* renderer);
+    SDL_Rect get_rect();
 };
 
 class And : public Gate{
 public:
-    And(bool input1, bool input2, int given_x, int given_y);
+    And(int given_x, int given_y);
     std::string to_string() override;   
     void evaluate() override;
     void draw(SDL_Renderer* renderer) override;
@@ -45,7 +53,7 @@ public:
 
 class Or : public Gate{
 public:
-    Or(bool input1, bool input2, int given_x, int given_y);
+    Or(int given_x, int given_y);
     std::string to_string() override;   
     void evaluate() override;
     void draw(SDL_Renderer* renderer) override;
@@ -53,8 +61,9 @@ public:
 
 class Not : public Gate{
 public:
-    Not(bool input, int given_x, int given_y);
+    Not(int given_x, int given_y);
     std::string to_string() override;   
     void evaluate() override;
     void draw(SDL_Renderer* renderer) override;
+    void update_pins() override;
 };

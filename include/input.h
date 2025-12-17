@@ -1,5 +1,6 @@
 #pragma once
 #include <SDL.h>
+#include "gate.cpp"
 
 constexpr int radius = 10;
 
@@ -8,6 +9,7 @@ public:
     int x;
     int y;
     bool val;
+    Pin pin_out;
 
     Input(int given_x, int given_y);
     void toggle();

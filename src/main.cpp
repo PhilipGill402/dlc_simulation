@@ -8,6 +8,14 @@ bool point_in_circle(SDL_Point point, int circle_x, int circle_y, int radius) {
     return false;
 }
 
+bool point_in_half_circle(SDL_Point point, int circle_x, int circle_y, int radius) {
+    if ((point.x - circle_x) * (point.x - circle_x) + (point.y - circle_y) * (point.y - circle_y) < radius * radius && point.x <= circle_x) {
+        return true;
+    }
+
+    return false;
+}
+
 constexpr int drag_threshold = 4;
 
 int main() {
@@ -56,7 +64,7 @@ int main() {
                     break;
                 case SDL_MOUSEMOTION:
                     mouse_pos = { event.motion.x, event.motion.y };
-                    if (mouse_button_down && (selected_gate || selected_input)) {
+                    if (mouse_button_down && (selected_gate || selected_input || new_wire)) {
                         int dx = mouse_pos.x - down_pos.x;
                         int dy = mouse_pos.y - down_pos.y;
                         if (!dragging) {
@@ -65,27 +73,28 @@ int main() {
                             }
                         } else {
                             if (selected_gate) {
+                                std::cout << "selected gate\n"; 
                                 selected_gate->x = mouse_pos.x - offset_pos.x;
                                 selected_gate->y = mouse_pos.y - offset_pos.y;
-                            } else if (new_wire) {
-                                //if dx is greater than dy then we want to elongate the horizontal rect, else we want to elongate the vertical rect 
-                                if (dx > dy) {
-                                    //if the vertical rect does not exist yet, then we want the first rect to be the horizontal one
-                                    if (new_wire->height == 0) {
-                                        new_wire->first = 1;
-                                    }
-                                    
-                                    new_wire->width = mouse_pos.x - selected_input->x;
+                            } else if (new_wire && selected_input) {
+                                new_wire->width  = mouse_pos.x - selected_input->x;
+                                new_wire->height = mouse_pos.y - selected_input->y;
+                                
+                                if (new_wire->first == 0 && dx*dx > dy*dy) {
+                                    new_wire->first = 1;
                                 } else {
-                                    //if the horizontal rect does not exist yet, then we want the first rect to be the vertical one
-                                    if (new_wire->width == 0) {
-                                        new_wire->first = 2;
-                                    }
-
-                                    new_wire->height = mouse_pos.y - selected_input->y;
-                                } 
-                            }
-                            
+                                    new_wire->first = 2;
+                                }
+                            } else if (new_wire) {
+                                new_wire->width  = mouse_pos.x - new_wire->src->x;
+                                new_wire->height = mouse_pos.y - new_wire->src->y;
+                                
+                                if (new_wire->first == 0 && dx*dx > dy*dy) {
+                                    new_wire->first = 1;
+                                } else {
+                                    new_wire->first = 2;
+                                }
+                            } 
                         }
                     }
                     break;
@@ -94,7 +103,20 @@ int main() {
                         if (!dragging) {
                             for (Input* input : sim.inputs) {
                                 if (point_in_circle(mouse_pos, input->x, input->y, 20)) {
-                                    input->toggle(); 
+                                    input->toggle();
+                                    break;
+                                }
+                            }
+                        } else {
+                            //only want to check gate connectors if we are holding onto a wire
+                            if (new_wire) {
+                                //check to see if mouse is over a gate connector
+                                for (Gate* gate : sim.gates) {
+                                    if (point_in_half_circle(mouse_pos, gate->x, gate->y+15, 10)) {
+                                        new_wire->connect(gate, 0); 
+                                    } else if (point_in_half_circle(mouse_pos, gate->x, gate->y+40, 10)) {
+                                        new_wire->connect(gate, 1); 
+                                    }
                                 }
                             }
                         }
@@ -103,6 +125,7 @@ int main() {
                     mouse_button_down = false;
                     dragging = false;
                     selected_gate = nullptr;
+                    selected_input = nullptr;
                     new_wire = nullptr;
                     break;
                 case SDL_MOUSEBUTTONDOWN: 
@@ -112,7 +135,8 @@ int main() {
                         down_pos = { event.button.x, event.button.y };
 
                         for (Gate* gate : sim.gates) {
-                            if (SDL_PointInRect(&mouse_pos, &gate->rect)) {
+                            SDL_Rect rect = gate->get_rect();
+                            if (SDL_PointInRect(&mouse_pos, &rect)) {
                                 selected_gate = gate;
 
                                 offset_pos.x = mouse_pos.x - gate->x;
@@ -122,14 +146,19 @@ int main() {
                         }
 
                         for (Wire* wire : sim.wires) {
-                            std::cout << "MOUSE X: " << mouse_pos.x << "\n";
-                            std::cout << "MOUSE Y: " << mouse_pos.y << "\n";
-                            std::cout << "WIRE X: " << wire->x + wire->width << "\n";
-                            std::cout << "WIRE Y: " << wire->y + wire->height << "\n";
+                            //if you click at the end, create a new wire 
                             if (point_in_circle(mouse_pos, wire->x + wire->width, wire->y + wire->height, 10)) {
                                 new_wire = new Wire(wire->src);
+                                new_wire->x = wire->x + wire->width - 5;
+                                new_wire->y = wire->y + wire->height - 5;
                                 sim.add_wire(new_wire);
+                                break;
+                            } else if (SDL_PointInRect(&mouse_pos, &wire->horizontal_rect) || SDL_PointInRect(&mouse_pos, &wire->vert_rect)) {
+                                //allows for resizing an already existing wire 
+                                new_wire = wire;
+                                break;
                             }
+                            
                             
                         }
 
@@ -148,13 +177,13 @@ int main() {
                     break;
                 case SDL_KEYDOWN:
                     if (event.key.keysym.sym == SDLK_a) {
-                        And* gate = new And(true, true, width/2, height/2);
+                        And* gate = new And(mouse_pos.x, mouse_pos.y);
                         sim.add_gate(gate);
                     } else if (event.key.keysym.sym == SDLK_o) {
-                        Or* gate = new Or(true, true, width/2, height/2);
+                        Or* gate = new Or(mouse_pos.x, mouse_pos.y);
                         sim.add_gate(gate);
                     } else if (event.key.keysym.sym == SDLK_n) {
-                        Not* gate = new Not(true, width/2, height/2);
+                        Not* gate = new Not(mouse_pos.x, mouse_pos.y);
                         sim.add_gate(gate);
                     }
                     break;
