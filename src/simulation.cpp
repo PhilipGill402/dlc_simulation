@@ -34,3 +34,22 @@ void Simulation::draw(SDL_Renderer* renderer) {
         wire->draw(renderer);
     }
 }
+
+void Simulation::simulate() {
+    for (Wire* wire : wires) {
+        bool val = false;
+        if (wire->input) {
+            val = wire->input->val;
+        } else if (wire->src_gate) {
+            val = wire->src_gate->out;
+        }
+
+        if (wire->dst_gate) {
+            wire->dst_gate->pin_in[wire->dst_idx] = val; 
+        }
+    }
+
+    for (Gate* gate : gates) {
+        gate->evaluate();
+    }
+}

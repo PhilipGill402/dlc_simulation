@@ -1,6 +1,6 @@
 #pragma once
 #include <SDL.h>
-#include "gate.cpp"
+#include "gate.h"
 
 constexpr int radius = 10;
 

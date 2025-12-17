@@ -33,10 +33,7 @@ int main() {
     SDL_Window* win = SDL_CreateWindow("Simulation", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, 0);
     SDL_Renderer* rend = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED); 
     
-    Input* input = new Input(100, 100);
-
     Simulation sim = Simulation();
-    sim.add_input(input);
 
     //sets backround to grey
     SDL_SetRenderDrawColor(rend, 110, 110, 110, 255);
@@ -52,7 +49,7 @@ int main() {
     bool dragging = false;
     Gate* selected_gate = nullptr;
     Input* selected_input = nullptr;
-    Wire* new_wire = nullptr;
+    Wire* selected_wire = nullptr;
 
     while (!close) {
         SDL_Event event; 
@@ -64,37 +61,33 @@ int main() {
                     break;
                 case SDL_MOUSEMOTION:
                     mouse_pos = { event.motion.x, event.motion.y };
-                    if (mouse_button_down && (selected_gate || selected_input || new_wire)) {
+                    if (mouse_button_down && (selected_gate || selected_input || selected_wire)) {
                         int dx = mouse_pos.x - down_pos.x;
                         int dy = mouse_pos.y - down_pos.y;
                         if (!dragging) {
                             if (dx*dx + dy*dy >= drag_threshold*drag_threshold) {
+                                if (selected_input) {
+                                    selected_wire = new Wire(selected_input);
+                                    sim.add_wire(selected_wire);
+                                } 
                                 dragging = true; 
                             }
                         } else {
                             if (selected_gate) {
-                                std::cout << "selected gate\n"; 
                                 selected_gate->x = mouse_pos.x - offset_pos.x;
                                 selected_gate->y = mouse_pos.y - offset_pos.y;
-                            } else if (new_wire && selected_input) {
-                                new_wire->width  = mouse_pos.x - selected_input->x;
-                                new_wire->height = mouse_pos.y - selected_input->y;
+                            } else if (selected_wire) {
+                                selected_wire->end.x = mouse_pos.x;
+                                selected_wire->end.y = mouse_pos.y;
                                 
-                                if (new_wire->first == 0 && dx*dx > dy*dy) {
-                                    new_wire->first = 1;
+                                if (selected_wire->first == 0 && dx*dx > dy*dy) {
+                                    selected_wire->first = 1;
                                 } else {
-                                    new_wire->first = 2;
+                                    selected_wire->first = 2;
                                 }
-                            } else if (new_wire) {
-                                new_wire->width  = mouse_pos.x - new_wire->src->x;
-                                new_wire->height = mouse_pos.y - new_wire->src->y;
-                                
-                                if (new_wire->first == 0 && dx*dx > dy*dy) {
-                                    new_wire->first = 1;
-                                } else {
-                                    new_wire->first = 2;
-                                }
-                            } 
+                             
+                            }
+                    
                         }
                     }
                     break;
@@ -109,13 +102,13 @@ int main() {
                             }
                         } else {
                             //only want to check gate connectors if we are holding onto a wire
-                            if (new_wire) {
+                            if (selected_wire) {
                                 //check to see if mouse is over a gate connector
                                 for (Gate* gate : sim.gates) {
-                                    if (point_in_half_circle(mouse_pos, gate->x, gate->y+15, 10)) {
-                                        new_wire->connect(gate, 0); 
-                                    } else if (point_in_half_circle(mouse_pos, gate->x, gate->y+40, 10)) {
-                                        new_wire->connect(gate, 1); 
+                                    if (point_in_half_circle(mouse_pos, gate->pin_in[0].x, gate->pin_in[0].y, 10)) {
+                                        selected_wire->connect(gate, 0); 
+                                    } else if (point_in_half_circle(mouse_pos, gate->pin_in[1].x, gate->pin_in[1].y, 10)) {
+                                        selected_wire->connect(gate, 1); 
                                     }
                                 }
                             }
@@ -126,7 +119,7 @@ int main() {
                     dragging = false;
                     selected_gate = nullptr;
                     selected_input = nullptr;
-                    new_wire = nullptr;
+                    selected_wire = nullptr;
                     break;
                 case SDL_MOUSEBUTTONDOWN: 
                     if (event.button.button == SDL_BUTTON_LEFT) {
@@ -147,28 +140,23 @@ int main() {
 
                         for (Wire* wire : sim.wires) {
                             //if you click at the end, create a new wire 
-                            if (point_in_circle(mouse_pos, wire->x + wire->width, wire->y + wire->height, 10)) {
-                                new_wire = new Wire(wire->src);
-                                new_wire->x = wire->x + wire->width - 5;
-                                new_wire->y = wire->y + wire->height - 5;
-                                sim.add_wire(new_wire);
-                                break;
-                            } else if (SDL_PointInRect(&mouse_pos, &wire->horizontal_rect) || SDL_PointInRect(&mouse_pos, &wire->vert_rect)) {
-                                //allows for resizing an already existing wire 
-                                new_wire = wire;
+                            if (point_in_circle(mouse_pos, wire->end.x, wire->end.y, 10)) {
+                                selected_wire = new Wire(wire);
+                                sim.add_wire(selected_wire);
                                 break;
                             }
-                            
+
+                            auto& rects = wire->get_rects();
+
+                            if (SDL_PointInRect(&mouse_pos, &rects[0]) || SDL_PointInRect(&mouse_pos, &rects[1])){
+                                selected_wire = wire; 
+                            }
                             
                         }
 
                         for (Input* input : sim.inputs) {
                             if (point_in_circle(mouse_pos, input->x, input->y, 10)) {
-                                new_wire = new Wire(input);
                                 selected_input = input;
-
-                                sim.add_wire(new_wire);
-                                
                             }
                         }
 
@@ -185,6 +173,9 @@ int main() {
                     } else if (event.key.keysym.sym == SDLK_n) {
                         Not* gate = new Not(mouse_pos.x, mouse_pos.y);
                         sim.add_gate(gate);
+                    } else if (event.key.keysym.sym == SDLK_i) {
+                        Input* input = new Input(mouse_pos.x, mouse_pos.y);
+                        sim.add_input(input);
                     }
                     break;
                 default:
@@ -196,6 +187,11 @@ int main() {
         SDL_RenderClear(rend);
 
         sim.draw(rend);
+        sim.simulate();
+        
+        for (Gate* gate : sim.gates) {
+            std::cout << gate->to_string() << "\n";
+        }
 
         SDL_RenderPresent(rend); 
     }

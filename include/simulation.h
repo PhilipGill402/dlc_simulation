@@ -17,4 +17,5 @@ public:
     void add_input(Input* input);
     void add_wire(Wire* wire);
     void draw(SDL_Renderer* renderer);
+    void simulate();
 };

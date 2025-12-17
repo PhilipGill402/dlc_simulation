@@ -33,7 +33,6 @@ public:
     int h;
     
     virtual ~Gate() = default;
-    Gate(bool val);
     Gate();
     virtual void evaluate() = 0;
     virtual void draw(SDL_Renderer* renderer) = 0;

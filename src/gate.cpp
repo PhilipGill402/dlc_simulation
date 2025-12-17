@@ -46,9 +46,9 @@ std::string Pin::to_string() {
 
 void Pin::draw(SDL_Renderer* renderer, bool is_left) {
     if (is_left) {
-        draw_left_half_circle(renderer, x, y, 10);
+        draw_left_half_circle(renderer, x, y, 7);
     } else {
-        draw_right_half_circle(renderer, x, y, 10);
+        draw_right_half_circle(renderer, x, y, 7);
     }
 }
 
@@ -68,7 +68,7 @@ Gate::Gate() {
 
 std::string Gate::to_string() {
     std::stringstream gate;
-    gate << "Gate: (" << in[0] << ", " << in[1] << ") -> " << out << "\n";
+    gate << "Gate: (" << in[0] << ", " << in[1] << ") -> " << out;
 
     return gate.str();
 }
@@ -94,7 +94,7 @@ SDL_Rect Gate::get_rect() {
 }
 
 /* *** AND Functions *** */
-And::And(int given_x, int given_y) {
+And::And(int given_x, int given_y) : Gate() {
     x = given_x;
     y = given_y;
     update_pins();
@@ -102,18 +102,22 @@ And::And(int given_x, int given_y) {
 
 std::string And::to_string() {
     std::stringstream gate;
-    gate << "And: (" << in[0] << ", " << in[1] << ") -> " << out << "\n";
+    gate << "And: (" << in[0] << ", " << in[1] << ") -> " << out;
 
     return gate.str();
 }
 
 void And::evaluate() {
-    out = in[0] && in[1];
+    out = pin_in[0].value && pin_in[1].value;
+    in[0] = pin_in[0].value;
+    in[1] = pin_in[1].value;
+    pin_out.value = out;
 }
 
 void And::draw(SDL_Renderer* renderer) {
-    SDL_Rect rect = { x, y, h, w };
-    
+    SDL_Rect rect = { x, y, w, h };
+    update_pins(); 
+
     draw_pins(renderer);    
 
     //AND is green
@@ -122,7 +126,7 @@ void And::draw(SDL_Renderer* renderer) {
 }
 
 /* *** OR Functions *** */
-Or::Or(int given_x, int given_y) {
+Or::Or(int given_x, int given_y) : Gate() {
     x = given_x;
     y = given_y;
     update_pins(); 
@@ -136,12 +140,16 @@ std::string Or::to_string() {
 }
 
 void Or::evaluate() {
-    out = in[0] || in[1];
+    out = pin_in[0].value || pin_in[1].value;
+    in[0] = pin_in[0].value;
+    in[1] = pin_in[1].value;
+    pin_out.value = out;
 }
 
 void Or::draw(SDL_Renderer* renderer) {
-    SDL_Rect rect = { x, y, h, w }; 
-    
+    SDL_Rect rect = { x, y, w, h }; 
+    update_pins();
+
     //input nodes
     draw_pins(renderer); 
 
@@ -151,7 +159,7 @@ void Or::draw(SDL_Renderer* renderer) {
 }
  
 /* *** NOT Functions *** */
-Not::Not(int given_x, int given_y) {
+Not::Not(int given_x, int given_y) : Gate() {
     x = given_x;
     y = given_y;
 
@@ -167,18 +175,21 @@ void Not::update_pins() {
 
 std::string Not::to_string() {
     std::stringstream gate;
-    gate << "Not: (" << in[0] << ") -> " << out << "\n";
+    gate << "Not: (" << in[0] << ") -> " << out;
 
     return gate.str();
 }
 
 void Not::evaluate() {
-    out = !in[0];
+    out = !pin_in[0].value;
+    in[0] = pin_in[0].value;
+    pin_out.value = out;
 }
 
 void Not::draw(SDL_Renderer* renderer) {
-    SDL_Rect rect = { x, y, w, h }; 
-    
+    SDL_Rect rect = { x, y, w, h };
+    update_pins();
+
     //input nodes
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     draw_left_half_circle(renderer, x, y + h/2, 10);
