@@ -3,15 +3,18 @@
 #include <vector>
 #include "gate.h"
 #include "input.h"
+#include "wire.h"
 
 class Simulation {
 public:
     std::vector<Gate*> gates;
     std::vector<Input*> inputs;
+    std::vector<Wire*> wires;
     
     Simulation();
     Simulation(std::vector<Gate*> &given_gates);
     void add_gate(Gate* gate);
     void add_input(Input* input);
+    void add_wire(Wire* wire);
     void draw(SDL_Renderer* renderer);
 };

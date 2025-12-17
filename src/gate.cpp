@@ -1,4 +1,5 @@
 #include "gate.h"
+#include <iostream>
 
 /* *** Helper Functions *** */
 void draw_half_circle(SDL_Renderer* renderer, int x, int y, int radius) {
@@ -12,6 +13,40 @@ void draw_half_circle(SDL_Renderer* renderer, int x, int y, int radius) {
 }
 
 /* *** Gate Functions *** */
+Gate::Gate(bool val) {
+    bool output = val;
+    
+    p_inputs = nullptr;
+    p_outputs = nullptr;
+    num_inputs = 0;
+    
+
+    evaluated = true;
+
+    //set to a position offscreen so that if accidentally drawn it won't show up
+    int x = -100;
+    int y = -100;
+}
+
+Gate::Gate() {
+    bool output = false;
+    
+    p_inputs = nullptr;
+    p_outputs = nullptr;
+    num_inputs = 0;
+    
+
+    evaluated = true;
+
+    //set to a position offscreen so that if accidentally drawn it won't show up
+    int x = -100;
+    int y = -100;
+}
+
+void Gate::evaluate() {
+    output = inputs[0];
+}
+
 std::string Gate::to_string() {
     std::stringstream gate;
     gate << "Gate: (" << inputs[0] << ", " << inputs[1] << ") -> " << output << "\n";
@@ -22,6 +57,11 @@ std::string Gate::to_string() {
 void Gate::draw(SDL_Renderer* renderer) {
     rect.x = x;
     rect.y = y;
+    
+    //input nodes
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    draw_half_circle(renderer, x, y+15, 10);
+    draw_half_circle(renderer, x, y+40, 10);
 
     //General is black 
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
@@ -33,8 +73,12 @@ And::And(bool input1, bool input2, int given_x, int given_y) {
     inputs[0] = input1;
     inputs[1] = input2;
     
-    evaluated = false;
+    Gate** p_inputs = nullptr;
+    Gate** p_outputs = nullptr;
+    num_inputs = 0; 
 
+    evaluated = false;
+    
     x = given_x;
     y = given_y;
 
@@ -77,6 +121,10 @@ Or::Or(bool input1, bool input2, int given_x, int given_y) {
     inputs[0] = input1;
     inputs[1] = input2;
     
+    Gate** p_inputs = nullptr;
+    Gate** p_outputs = nullptr;
+    num_inputs = 0; 
+
     evaluated = false;
 
     x = given_x;
@@ -119,6 +167,10 @@ void Or::draw(SDL_Renderer* renderer) {
 /* *** NOT Functions *** */
 Not::Not(bool input, int given_x, int given_y) {
     inputs[0] = input;
+    
+    Gate** p_inputs = nullptr;
+    Gate** p_outputs = nullptr;
+    num_inputs = 0; 
 
     evaluated = false;
 

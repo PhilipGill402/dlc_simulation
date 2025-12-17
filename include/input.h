@@ -1,7 +1,7 @@
 #pragma once
 #include <SDL.h>
 
-constexpr int radius = 20;
+constexpr int radius = 10;
 
 class Input {
 public:

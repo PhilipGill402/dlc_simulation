@@ -5,3 +5,4 @@
 #include "gate.h"
 #include "simulation.h"
 #include "input.h"
+#include "wire.h"
