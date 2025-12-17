@@ -1,4 +1,7 @@
 #pragma once
 #include <SDL.h>
 #include <iostream>
-#include <gate.h>
+#include <vector>
+#include "gate.h"
+#include "simulation.h"
+#include "input.h"
