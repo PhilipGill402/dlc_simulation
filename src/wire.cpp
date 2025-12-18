@@ -1,17 +1,18 @@
 #include "wire.h"
+#include "simulation.h"
 #include <iostream>
 #include <sstream>
 
-Wire::Wire(Input* given_input) {
-    input = given_input;
-    src_gate = nullptr;
-    connecting_wire = nullptr;
-    dst_gate = nullptr;
-    dst_light = nullptr;
+Wire::Wire(Input* given_input, uint32_t given_id) {
+    id = given_id; 
+    src_type = ObjectType::INPUT;
+    src_id = given_input->id;
+    dst_type = ObjectType::NONE;
+    dst_id = 0;
     dst_idx = -1;
     
-    start = { input->x, input->y };
-    end = { input->x, input->y };
+    start = { given_input->x, given_input->y };
+    end = { given_input->x, given_input->y };
 
     //0 = not set
     //1 = horizontal first
@@ -19,16 +20,16 @@ Wire::Wire(Input* given_input) {
     first = 0;
 }
 
-Wire::Wire(Gate* gate) {
-    input = nullptr;
-    src_gate = gate;
-    connecting_wire = nullptr;
-    dst_gate = nullptr;
-    dst_light = nullptr;
+Wire::Wire(Gate* gate, uint32_t given_id) {
+    id = given_id; 
+    src_type = ObjectType::GATE;
+    src_id = gate->id;
+    dst_type = ObjectType::NONE;
+    dst_id = 0;
     dst_idx = -1;
 
-    start = { src_gate->pin_out.x, src_gate->pin_out.y };
-    end = { src_gate->pin_out.x, src_gate->pin_out.y };
+    start = { gate->pin_out.x, gate->pin_out.y };
+    end = { gate->pin_out.x, gate->pin_out.y };
 
     //0 = not set
     //1 = horizontal first
@@ -36,21 +37,12 @@ Wire::Wire(Gate* gate) {
     first = 0;
 }
 
-Wire::Wire(Wire* wire) {
-    if (wire->input) {
-        input = wire->input;
-        src_gate = nullptr;
-    } else if (wire->src_gate) {
-        input = nullptr;
-        src_gate = wire->src_gate;
-    } else {
-        input = nullptr;
-        src_gate = nullptr;
-    }
-    
-    connecting_wire = wire;
-    dst_gate = nullptr;
-    dst_light = nullptr;
+Wire::Wire(Wire* wire, uint32_t given_id) {
+    id = given_id;
+    src_type = ObjectType::WIRE;
+    src_id = wire->id;
+    dst_type = ObjectType::NONE;
+    dst_id = 0;
     dst_idx = -1;
     
     start = { wire->end.x, wire->end.y };
@@ -62,37 +54,82 @@ Wire::Wire(Wire* wire) {
     first = 0;
 }
 
-void Wire::draw(SDL_Renderer* renderer) {
-    //sets the color of the wire based on the value of what it is connected to 
-    if (src_gate) {
+Wire::Wire() {
+    id = 0;
+    src_type = ObjectType::NONE;
+    src_id = 0;
+    dst_type = ObjectType::NONE;
+    dst_id = 0;
+    dst_idx = -1;
+    
+    start = { 0, 0 };
+    end = { 0, 0 };
 
+    first = 0;
+}
+
+void Wire::draw(SDL_Renderer* renderer, const Simulation* sim) {
+    //sets the color of the wire based on the value of what it is connected to
+    if (src_type == ObjectType::GATE) {
+        Gate* src_gate; 
+        if (!(src_gate = sim->get_gate(src_id))) {
+            std::cout << "failed to get source gate\n"; 
+            return;
+        }
+
+        start = { src_gate->pin_out.x, src_gate->pin_out.y }; 
+        
         if (src_gate->out) {
             SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         } else {
             SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         }
-    } else if (input) {
+
+    } else if (src_type == ObjectType::INPUT) {
+        Input* input;
+        if (!(input = sim->get_input(src_id))) {
+            std::cout << "failed to get input\n";
+            return;
+        }
+        
+        start = { input->x, input->y };
+
         if (input->val) {
             SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         } else {
             SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         }
+
+    } else if (src_type == ObjectType::WIRE) {
+        Wire* connecting_wire;
+        if (!(connecting_wire = sim->get_wire(src_id))) {
+            std::cout << "failed to get wire\n";
+            return;
+        }
+        start = { connecting_wire->end.x, connecting_wire->end.y };
+
     } else {
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     }
     
-    if (connecting_wire) {
-        start = { connecting_wire->end.x, connecting_wire->end.y };
-    } else if (src_gate) {
-        start = { src_gate->pin_out.x, src_gate->pin_out.y }; 
-    }
-    
-    if (dst_gate && (dst_idx == 0 || dst_idx == 1)) {
+    if (dst_type == ObjectType::GATE && (dst_idx == 0 || dst_idx == 1)) {
+        Gate* dst_gate;
+        if (!(dst_gate = sim->get_gate(dst_id))) {
+            std::cout << "failed to get destination gate\n";
+            return;
+        }
+
         end = { dst_gate->pin_in[dst_idx].x, dst_gate->pin_in[dst_idx].y };
-    } else if (dst_light) {
+    } else if (dst_type == ObjectType::LIGHT) {
+        Light* dst_light;
+        if (!(dst_light = sim->get_light(dst_id))) {
+            std::cout << "failed to get destination light\n";
+            return;
+        }
+
         end = { dst_light->x, dst_light->y };
     }
-    
+
     SDL_Point elbow;
     int width = 0;
     int height = 0;
@@ -122,13 +159,15 @@ void Wire::draw(SDL_Renderer* renderer) {
 }
 
 void Wire::connect(Gate* gate, int idx) {
-    dst_gate = gate;
+    dst_type = ObjectType::GATE;
+    dst_id = gate->id;
     dst_idx = idx;
     end = { gate->pin_in[idx].x, gate->pin_in[idx].y };
 }
 
 void Wire::connect(Light* light) {
-    dst_light = light; 
+    dst_type = ObjectType::LIGHT;
+    dst_id = light->id;
 }
 
 std::array<SDL_Rect, 2> Wire::get_rects() {
@@ -156,6 +195,6 @@ std::array<SDL_Rect, 2> Wire::get_rects() {
 
 std::string Wire::to_string() {
     std::stringstream str;
-    str << "Wire X:" << start.x << ", Y: " << start.y;
+    str << "Wire " << id;
     return str.str();
 }
