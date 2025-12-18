@@ -71,8 +71,20 @@ void Simulation::simulate() {
 }
 
 void Simulation::clear() {
+    for (Gate* gate : gates) {
+        delete gate;
+    }
     gates.clear();
+    for (Input* input : inputs) {
+        delete input;
+    }
     inputs.clear();
+    for (Wire* wire : wires) {
+        delete wire;
+    }
     wires.clear();
+    for (Light* light : lights) {
+        delete light;
+    }
     lights.clear();
 }

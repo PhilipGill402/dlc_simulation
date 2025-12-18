@@ -272,6 +272,7 @@ int main() {
 
     
     //cleanup
+    sim.clear(); 
     SDL_DestroyRenderer(rend); 
     SDL_DestroyWindow(win);
     SDL_Quit();
