@@ -322,6 +322,8 @@ void Simulation::save_state() {
 }
 
 void Simulation::load_state() {
+    sim.clear(); 
+
     std::ifstream save_file("save/save_file.json");
 
     if (!save_file.is_open()) {
