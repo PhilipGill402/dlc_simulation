@@ -21,6 +21,13 @@ The simulation window consists of:
 
 ---
 
+## Running
+
+To compile and run just run:
+```bash
+make && ./sim
+```
+
 ## INTERFACE
 
 ### Gates
