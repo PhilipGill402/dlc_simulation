@@ -80,8 +80,7 @@ int main() {
                         if (!dragging) {
                             if (dx*dx + dy*dy >= DRAG_THRESHOLD*DRAG_THRESHOLD) {
                                 if (selected_input) {
-                                    selected_wire = new Wire(selected_input);
-                                    sim.add_wire(selected_wire);
+                                    selected_wire = sim.add_wire(selected_input);
                                 } 
                                 dragging = true; 
                             }
@@ -165,8 +164,7 @@ int main() {
                                 offset_pos.y = mouse_pos.y - gate->y;
                                 break;
                             } else if (point_in_right_half_circle(mouse_pos, gate->pin_out.x, gate->pin_out.y, PIN_RADIUS)) {
-                                selected_wire = new Wire(gate);
-                                sim.add_wire(selected_wire);
+                                selected_wire = sim.add_wire(gate);
                                 handled = true;
 
                                 break;
@@ -205,8 +203,7 @@ int main() {
                         for (Wire* wire : sim.wires) {
                             //if you click at the end, create a new wire 
                             if (point_in_circle(mouse_pos, wire->end.x, wire->end.y, 10)) {
-                                selected_wire = new Wire(wire);
-                                sim.add_wire(selected_wire);
+                                selected_wire = sim.add_wire(wire);
                                 handled = true;
                                 break;
                             }
@@ -263,7 +260,7 @@ int main() {
         
         sim.draw(rend);
         sim.simulate();
-        
+    
         SDL_RenderSetScale(rend, zoom, zoom);
 
         SDL_RenderPresent(rend); 

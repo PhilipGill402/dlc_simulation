@@ -7,14 +7,6 @@ using json = nlohmann::json;
 
 Simulation::Simulation() {
     generator = IdGenerator(); 
-    gates = {};
-    inputs = {};
-    wires = {};
-    lights = {};
-}
-
-Simulation::Simulation(std::vector<Gate*> &given_gates) {
-    gates = given_gates;
 }
 
 void Simulation::add_gate(std::string type, int x, int y, uint32_t id) {
@@ -36,6 +28,7 @@ void Simulation::add_gate(std::string type, int x, int y, uint32_t id) {
         gate->id = id;
     }
 
+    gate_map[gate->id] = gate; 
     gates.push_back(gate);
 }
 
@@ -48,11 +41,53 @@ void Simulation::add_input(int x, int y, uint32_t id) {
         input->id = id;
     }
 
+    input_map[input->id] = input;
     inputs.push_back(input);
 }
 
-void Simulation::add_wire(Wire* wire) {
+Wire* Simulation::add_wire(Wire* wire, uint32_t id) {
+    Wire* new_wire = new Wire(wire);
+
+    if (id == 0) {
+        new_wire->id = generator.make_id();
+    } else {
+        new_wire->id = id;
+    }
+    
+    wire_map[new_wire->id] = new_wire;
+    wires.push_back(new_wire);
+
+    return new_wire;
+}
+
+Wire* Simulation::add_wire(Input* input, uint32_t id) {
+    Wire* wire = new Wire(input);
+
+    if (id == 0) {
+        wire->id = generator.make_id();
+    } else {
+        wire->id = id;
+    }
+    
+    wire_map[wire->id] = wire;
     wires.push_back(wire);
+
+    return wire;
+}
+
+Wire* Simulation::add_wire(Gate* gate, uint32_t id) {
+    Wire* wire = new Wire(gate);
+
+    if (id == 0) {
+        wire->id = generator.make_id();
+    } else {
+        wire->id = id;
+    }
+    
+    wire_map[wire->id] = wire;
+    wires.push_back(wire);
+
+    return wire;
 }
 
 void Simulation::add_light(int x, int y, uint32_t id) {
@@ -63,8 +98,51 @@ void Simulation::add_light(int x, int y, uint32_t id) {
     } else {
         light->id = id;
     }
-
+    
+    light_map[light->id] = light;
     lights.push_back(light);
+}
+
+Gate* Simulation::get_gate(uint32_t id) const {
+    Gate* gate; 
+    try {
+        gate = gate_map.at(id);
+    } catch (std::out_of_range){
+        return nullptr;
+    }
+    return gate;
+}
+
+Input* Simulation::get_input(uint32_t id) const {
+    Input* input; 
+    try {
+        input = input_map.at(id);
+    } catch (std::out_of_range){
+        return nullptr;
+    }
+    return input;
+}
+
+Wire* Simulation::get_wire(uint32_t id) const {
+    Wire* wire; 
+    try {
+        wire = wire_map.at(id);
+    } catch (std::out_of_range){
+        return nullptr;
+    }
+
+    return wire;
+}
+
+Light* Simulation::get_light(uint32_t id) const {
+    Light* light; 
+    try {
+        light = light_map.at(id);
+    } catch (std::out_of_range){
+        return nullptr;
+    }
+
+    return light;
 }
 
 void Simulation::draw(SDL_Renderer* renderer) {
@@ -77,7 +155,7 @@ void Simulation::draw(SDL_Renderer* renderer) {
     }
 
     for (Wire* wire : wires) {
-        wire->draw(renderer);
+        wire->draw(renderer, this);
     }
 
     for (Light* light : lights) {
@@ -88,16 +166,41 @@ void Simulation::draw(SDL_Renderer* renderer) {
 void Simulation::simulate() {
     for (Wire* wire : wires) {
         bool val = false;
-        if (wire->input) {
-            val = wire->input->val;
-        } else if (wire->src_gate) {
-            val = wire->src_gate->out;
-        }
+        
+        if (wire->src_type == ObjectType::INPUT) {
+            Input* input;
+            if (!(input = get_input(wire->src_id))) {
+                std::cout << "failed to get source input\n";
+                return;
+            }
 
-        if (wire->dst_gate) {
-            wire->dst_gate->pin_in[wire->dst_idx] = val; 
-        } else if (wire->dst_light) {
-            wire->dst_light->pin_in.value = val;
+            val = input->val;
+        } else if (wire->src_type == ObjectType::GATE) {
+            Gate* gate;
+            if (!(gate = get_gate(wire->src_id))) {
+                std::cout << "failed to get source gate\n";
+                return;
+            }
+
+            val = gate->pin_out.value;
+        }
+        
+        if (wire->dst_type == ObjectType::GATE) {
+            Gate* dst_gate;
+            if (!(dst_gate = get_gate(wire->dst_id))) {
+                std::cout << "failed to get destination gate\n";
+                return;
+            }
+
+            dst_gate->pin_in[wire->dst_idx] = val; 
+        } else if (wire->dst_type == ObjectType::LIGHT) {
+            Light* dst_light;
+            if (!(dst_light = get_light(wire->dst_id))) {
+                std::cout << "failed to get destination light\n";
+                return;
+            }
+
+            dst_light->pin_in.value = val;
         }
     }
 
@@ -189,9 +292,30 @@ void Simulation::save_state() {
         lights_data.push_back(light_data);    
     }
 
+    //handles wires
+    std::vector<json> wires_data;
+    for (Wire* wire : wires) {
+        json wire_data;
+        
+        wire_data["id"] = wire->id;
+        wire_data["src_type"] = wire->src_type;
+        wire_data["src_id"] = wire->src_id;
+        wire_data["dst_type"] = wire->dst_type;
+        wire_data["dst_id"] = wire->dst_id;
+        wire_data["dst_idx"] = wire->dst_idx;
+        wire_data["first"] = wire->first;
+        wire_data["start_x"] = wire->start.x;
+        wire_data["start_y"] = wire->start.y;
+        wire_data["end_x"] = wire->end.x;
+        wire_data["end_y"] = wire->end.y;
+
+        wires_data.push_back(wire_data);
+    }
+
     file_contents["Gates"] = gates_data;
     file_contents["Inputs"] = inputs_data;
     file_contents["Lights"] = lights_data;
+    file_contents["Wires"] = wires_data;
 
     std::string save_state = file_contents.dump(4);
     save_file << save_state;
@@ -211,6 +335,7 @@ void Simulation::load_state() {
     std::vector<json> gates_data = file_content.at("Gates");
     std::vector<json> inputs_data = file_content.at("Inputs");
     std::vector<json> lights_data = file_content.at("Lights");
+    std::vector<json> wires_data = file_content.at("Wires");
     
     //handles gates
     for (json gate : gates_data) {
@@ -235,5 +360,35 @@ void Simulation::load_state() {
         int x = light["x"];
         int y = light["y"];
         add_light(x, y, id);
+    }
+
+    //handles wires
+    for (json wire : wires_data) {
+        int id = wire["id"];
+        ObjectType src_type = wire["src_type"];
+        int src_id = wire["src_id"];
+        ObjectType dst_type = wire["dst_type"];
+        int dst_id = wire["dst_id"];
+        int dst_idx = wire["dst_idx"];
+        int first = wire["first"];
+        int start_x = wire["start_x"];
+        int start_y = wire["start_y"];
+        int end_x = wire["end_x"];
+        int end_y = wire["end_y"];
+         
+        Wire* new_wire = new Wire();
+
+        new_wire->id = id;
+        new_wire->src_type = src_type;
+        new_wire->src_id = src_id;
+        new_wire->dst_type = dst_type;
+        new_wire->dst_id = dst_id;
+        new_wire->dst_idx = dst_idx;
+        new_wire->first = first;
+        new_wire->start = { start_x, start_y };
+        new_wire->end = { end_x, end_y };
+
+        wire_map[id] = new_wire;
+        wires.push_back(new_wire);
     }
 }
