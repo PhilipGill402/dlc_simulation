@@ -2,7 +2,7 @@
 
 # Compiler and flags
 CXX = g++
-CXXFLAGS = -std=c++17 -Iinclude #-fsanitize=address,undefined -fno-omit-frame-pointer
+CXXFLAGS = -std=c++17 -Iinclude -I/opt/homebrew/include
 LDFLAGS  += -fsanitize=address,undefined
 
 #SDL flags

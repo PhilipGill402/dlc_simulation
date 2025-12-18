@@ -1,6 +1,8 @@
 #include "light.h"
 
 Light::Light(int given_x, int given_y) {
+    id = 0;
+
     x = given_x;
     y = given_y;
 

@@ -227,22 +227,21 @@ int main() {
                     break;
                 case SDL_KEYDOWN:
                     if (event.key.keysym.sym == SDLK_a) {
-                        And* gate = new And(mouse_pos.x, mouse_pos.y);
-                        sim.add_gate(gate);
+                        sim.add_gate("And", mouse_pos.x, mouse_pos.y);
                     } else if (event.key.keysym.sym == SDLK_o) {
-                        Or* gate = new Or(mouse_pos.x, mouse_pos.y);
-                        sim.add_gate(gate);
+                        sim.add_gate("Or", mouse_pos.x, mouse_pos.y);
                     } else if (event.key.keysym.sym == SDLK_n) {
-                        Not* gate = new Not(mouse_pos.x, mouse_pos.y);
-                        sim.add_gate(gate);
-                    } else if (event.key.keysym.sym == SDLK_i) {
-                        Input* input = new Input(mouse_pos.x, mouse_pos.y);
-                        sim.add_input(input);
+                        sim.add_gate("Not", mouse_pos.x, mouse_pos.y);
+                    } else if (event.key.keysym.sym == SDLK_i) { 
+                        sim.add_input(mouse_pos.x, mouse_pos.y);
                     } else if (event.key.keysym.sym == SDLK_l) {
-                        Light* light = new Light(mouse_pos.x, mouse_pos.y);
-                        sim.add_light(light);
+                        sim.add_light(mouse_pos.x, mouse_pos.y);
                     } else if (event.key.keysym.sym == SDLK_r) {
                         sim.clear();
+                    } else if (event.key.keysym.sym == SDLK_s) {
+                        sim.save_state();
+                    } else if (event.key.keysym.sym == SDLK_v) {
+                        sim.load_state();
                     }
                     break;
 

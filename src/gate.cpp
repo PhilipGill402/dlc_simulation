@@ -54,6 +54,8 @@ void Pin::draw(SDL_Renderer* renderer, bool is_left) {
 
 /* *** Gate Functions *** */
 Gate::Gate() {
+    id = 0;  
+
     //boolean representations of inputs and outputs
     in[0] = false;
     in[1] = false;
@@ -68,7 +70,7 @@ Gate::Gate() {
 
 std::string Gate::to_string() {
     std::stringstream gate;
-    gate << "Gate: (" << in[0] << ", " << in[1] << ") -> " << out;
+    gate << "Gate " << id << ": (" << in[0] << ", " << in[1] << ") -> " << out;
 
     return gate.str();
 }
@@ -94,7 +96,8 @@ SDL_Rect Gate::get_rect() {
 }
 
 /* *** AND Functions *** */
-And::And(int given_x, int given_y) : Gate() {
+And::And(int given_x, int given_y, uint32_t given_id) : Gate() {
+    id = given_id; 
     x = given_x;
     y = given_y;
     update_pins();
@@ -102,7 +105,7 @@ And::And(int given_x, int given_y) : Gate() {
 
 std::string And::to_string() {
     std::stringstream gate;
-    gate << "And: (" << in[0] << ", " << in[1] << ") -> " << out;
+    gate << "And " << id << ": (" << in[0] << ", " << in[1] << ") -> " << out;
 
     return gate.str();
 }
@@ -126,7 +129,8 @@ void And::draw(SDL_Renderer* renderer) {
 }
 
 /* *** OR Functions *** */
-Or::Or(int given_x, int given_y) : Gate() {
+Or::Or(int given_x, int given_y, uint32_t given_id) : Gate() {
+    id = given_id; 
     x = given_x;
     y = given_y;
     update_pins(); 
@@ -134,7 +138,7 @@ Or::Or(int given_x, int given_y) : Gate() {
 
 std::string Or::to_string() {
     std::stringstream gate;
-    gate << "Or: (" << in[0] << ", " << in[1] << ") -> " << out << "\n";
+    gate << "Or " << id << ": (" << in[0] << ", " << in[1] << ") -> " << out;
 
     return gate.str();
 }
@@ -159,7 +163,8 @@ void Or::draw(SDL_Renderer* renderer) {
 }
  
 /* *** NOT Functions *** */
-Not::Not(int given_x, int given_y) : Gate() {
+Not::Not(int given_x, int given_y, uint32_t given_id) : Gate() {
+    id = given_id; 
     x = given_x;
     y = given_y;
 
@@ -175,7 +180,7 @@ void Not::update_pins() {
 
 std::string Not::to_string() {
     std::stringstream gate;
-    gate << "Not: (" << in[0] << ") -> " << out;
+    gate << "Not " << id << ": (" << in[0] << ") -> " << out;
 
     return gate.str();
 }

@@ -19,6 +19,9 @@ public:
 
 class Gate{
 public:
+    //id to distinguish each gate
+    uint32_t id;
+
     //boolean representations of inputs and outputs
     bool in[2];
     bool out;
@@ -45,7 +48,7 @@ public:
 
 class And : public Gate{
 public:
-    And(int given_x, int given_y);
+    And(int given_x, int given_y, uint32_t given_id = 0);
     std::string to_string() override;   
     void evaluate() override;
     void draw(SDL_Renderer* renderer) override;
@@ -53,7 +56,7 @@ public:
 
 class Or : public Gate{
 public:
-    Or(int given_x, int given_y);
+    Or(int given_x, int given_y, uint32_t given_id = 0);
     std::string to_string() override;   
     void evaluate() override;
     void draw(SDL_Renderer* renderer) override;
@@ -61,7 +64,7 @@ public:
 
 class Not : public Gate{
 public:
-    Not(int given_x, int given_y);
+    Not(int given_x, int given_y, uint32_t given_id = 0);
     std::string to_string() override;   
     void evaluate() override;
     void draw(SDL_Renderer* renderer) override;

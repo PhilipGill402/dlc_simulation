@@ -5,6 +5,7 @@
 
 class Input {
 public:
+    uint32_t id; 
     int x;
     int y;
     bool val;
