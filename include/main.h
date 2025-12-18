@@ -2,6 +2,7 @@
 #include <SDL.h>
 #include <iostream>
 #include <vector>
+#include <array>
 #include "gate.h"
 #include "simulation.h"
 #include "input.h"

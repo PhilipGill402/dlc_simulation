@@ -2,7 +2,8 @@
 
 # Compiler and flags
 CXX = g++
-CXXFLAGS = -std=c++17 -Iinclude
+CXXFLAGS = -std=c++17 -Iinclude #-fsanitize=address,undefined -fno-omit-frame-pointer
+LDFLAGS  += -fsanitize=address,undefined
 
 #SDL flags
 SDL_CFLAGS := $(shell sdl2-config --cflags)

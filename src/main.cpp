@@ -8,8 +8,16 @@ bool point_in_circle(SDL_Point point, int circle_x, int circle_y, int radius) {
     return false;
 }
 
-bool point_in_half_circle(SDL_Point point, int circle_x, int circle_y, int radius) {
+bool point_in_left_half_circle(SDL_Point point, int circle_x, int circle_y, int radius) {
     if ((point.x - circle_x) * (point.x - circle_x) + (point.y - circle_y) * (point.y - circle_y) < radius * radius && point.x <= circle_x) {
+        return true;
+    }
+
+    return false;
+}
+
+bool point_in_right_half_circle(SDL_Point point, int circle_x, int circle_y, int radius) {
+    if ((point.x - circle_x) * (point.x - circle_x) + (point.y - circle_y) * (point.y - circle_y) < radius * radius && point.x >= circle_x) {
         return true;
     }
 
@@ -82,7 +90,7 @@ int main() {
                                 
                                 if (selected_wire->first == 0 && dx*dx > dy*dy) {
                                     selected_wire->first = 1;
-                                } else {
+                                } else if (selected_wire->first == 0 && dy*dy > dx*dx){
                                     selected_wire->first = 2;
                                 }
                              
@@ -105,9 +113,9 @@ int main() {
                             if (selected_wire) {
                                 //check to see if mouse is over a gate connector
                                 for (Gate* gate : sim.gates) {
-                                    if (point_in_half_circle(mouse_pos, gate->pin_in[0].x, gate->pin_in[0].y, 10)) {
+                                    if (point_in_left_half_circle(mouse_pos, gate->pin_in[0].x, gate->pin_in[0].y, 10)) {
                                         selected_wire->connect(gate, 0); 
-                                    } else if (point_in_half_circle(mouse_pos, gate->pin_in[1].x, gate->pin_in[1].y, 10)) {
+                                    } else if (point_in_left_half_circle(mouse_pos, gate->pin_in[1].x, gate->pin_in[1].y, 10)) {
                                         selected_wire->connect(gate, 1); 
                                     }
                                 }
@@ -121,21 +129,35 @@ int main() {
                     selected_input = nullptr;
                     selected_wire = nullptr;
                     break;
-                case SDL_MOUSEBUTTONDOWN: 
+                case SDL_MOUSEBUTTONDOWN:
                     if (event.button.button == SDL_BUTTON_LEFT) {
                         mouse_button_down = true;
-                        dragging = false; 
-                        down_pos = { event.button.x, event.button.y };
+                        dragging = false;
+                        bool handled = false;
+                        
+                        mouse_pos = { event.button.x, event.button.y };
+                        down_pos = mouse_pos;
 
                         for (Gate* gate : sim.gates) {
                             SDL_Rect rect = gate->get_rect();
                             if (SDL_PointInRect(&mouse_pos, &rect)) {
                                 selected_gate = gate;
+                                handled = true;
 
                                 offset_pos.x = mouse_pos.x - gate->x;
                                 offset_pos.y = mouse_pos.y - gate->y;
                                 break;
+                            } else if (point_in_right_half_circle(mouse_pos, gate->pin_out.x, gate->pin_out.y, 10)) {
+                                selected_wire = new Wire(gate);
+                                sim.add_wire(selected_wire);
+                                handled = true;
+
+                                break;
                             }
+                        }
+
+                        if (handled) {
+                            break;
                         }
 
                         for (Wire* wire : sim.wires) {
@@ -143,15 +165,20 @@ int main() {
                             if (point_in_circle(mouse_pos, wire->end.x, wire->end.y, 10)) {
                                 selected_wire = new Wire(wire);
                                 sim.add_wire(selected_wire);
+                                handled = true;
                                 break;
                             }
 
-                            auto& rects = wire->get_rects();
+                            std::array<SDL_Rect, 2> rects = wire->get_rects();
 
                             if (SDL_PointInRect(&mouse_pos, &rects[0]) || SDL_PointInRect(&mouse_pos, &rects[1])){
                                 selected_wire = wire; 
                             }
                             
+                        }
+
+                        if (handled) {
+                            break;
                         }
 
                         for (Input* input : sim.inputs) {
@@ -185,14 +212,10 @@ int main() {
         
         SDL_SetRenderDrawColor(rend, 110, 110, 110, 255);   
         SDL_RenderClear(rend);
-
+        
         sim.draw(rend);
         sim.simulate();
         
-        for (Gate* gate : sim.gates) {
-            std::cout << gate->to_string() << "\n";
-        }
-
         SDL_RenderPresent(rend); 
     }
 

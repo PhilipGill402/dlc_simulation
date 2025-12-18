@@ -1,6 +1,6 @@
 #pragma once
 #include <SDL.h>
-#include <vector>
+#include <array>
 #include "input.h"
 #include "gate.h"
 
@@ -8,8 +8,12 @@ constexpr int wire_height = 5;
 
 class Wire {
 public:
+    //three possible sources of input 
     Input* input;
     Gate* src_gate;
+    Wire* connecting_wire;
+    
+    //destination gate and index of the pin
     Gate* dst_gate;
     int dst_idx;
     
@@ -28,5 +32,7 @@ public:
 
     void draw(SDL_Renderer* renderer);
     void connect(Gate* gate, int idx);
-    SDL_Rect (&get_rects())[2]; 
+    std::array<SDL_Rect, 2> get_rects();
+
+    std::string to_string();
 };
