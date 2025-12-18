@@ -3,6 +3,7 @@
 #include <array>
 #include "input.h"
 #include "gate.h"
+#include "light.h"
 
 class Wire {
 public:
@@ -15,6 +16,9 @@ public:
     Gate* dst_gate;
     int dst_idx;
     
+    //destination light
+    Light* dst_light;
+
     //we are drawing between these two points
     SDL_Point start;
     SDL_Point end;
@@ -30,6 +34,7 @@ public:
 
     void draw(SDL_Renderer* renderer);
     void connect(Gate* gate, int idx);
+    void connect(Light* light);
     std::array<SDL_Rect, 2> get_rects();
 
     std::string to_string();

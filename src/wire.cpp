@@ -7,6 +7,7 @@ Wire::Wire(Input* given_input) {
     src_gate = nullptr;
     connecting_wire = nullptr;
     dst_gate = nullptr;
+    dst_light = nullptr;
     dst_idx = -1;
     
     start = { input->x, input->y };
@@ -23,6 +24,7 @@ Wire::Wire(Gate* gate) {
     src_gate = gate;
     connecting_wire = nullptr;
     dst_gate = nullptr;
+    dst_light = nullptr;
     dst_idx = -1;
 
     start = { src_gate->pin_out.x, src_gate->pin_out.y };
@@ -48,6 +50,7 @@ Wire::Wire(Wire* wire) {
     
     connecting_wire = wire;
     dst_gate = nullptr;
+    dst_light = nullptr;
     dst_idx = -1;
     
     start = { wire->end.x, wire->end.y };
@@ -86,6 +89,8 @@ void Wire::draw(SDL_Renderer* renderer) {
     
     if (dst_gate && (dst_idx == 0 || dst_idx == 1)) {
         end = { dst_gate->pin_in[dst_idx].x, dst_gate->pin_in[dst_idx].y };
+    } else if (dst_light) {
+        end = { dst_light->x, dst_light->y };
     }
     
     SDL_Point elbow;
@@ -120,6 +125,10 @@ void Wire::connect(Gate* gate, int idx) {
     dst_gate = gate;
     dst_idx = idx;
     end = { gate->pin_in[idx].x, gate->pin_in[idx].y };
+}
+
+void Wire::connect(Light* light) {
+    dst_light = light; 
 }
 
 std::array<SDL_Rect, 2> Wire::get_rects() {

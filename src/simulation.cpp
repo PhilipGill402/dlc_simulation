@@ -3,6 +3,8 @@
 Simulation::Simulation() {
     gates = {};
     inputs = {};
+    wires = {};
+    lights = {};
 }
 
 Simulation::Simulation(std::vector<Gate*> &given_gates) {
@@ -21,6 +23,10 @@ void Simulation::add_wire(Wire* wire) {
     wires.push_back(wire);
 }
 
+void Simulation::add_light(Light* light) {
+    lights.push_back(light);
+}
+
 void Simulation::draw(SDL_Renderer* renderer) {
     for (Gate* gate : gates) {
         gate->draw(renderer);
@@ -32,6 +38,10 @@ void Simulation::draw(SDL_Renderer* renderer) {
 
     for (Wire* wire : wires) {
         wire->draw(renderer);
+    }
+
+    for (Light* light : lights) {
+        light->draw(renderer);
     }
 }
 
@@ -46,10 +56,16 @@ void Simulation::simulate() {
 
         if (wire->dst_gate) {
             wire->dst_gate->pin_in[wire->dst_idx] = val; 
+        } else if (wire->dst_light) {
+            wire->dst_light->pin_in.value = val;
         }
     }
 
     for (Gate* gate : gates) {
         gate->evaluate();
+    }
+
+    for (Light* light : lights) {
+        light->evaluate();
     }
 }

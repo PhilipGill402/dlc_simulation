@@ -61,6 +61,7 @@ int main() {
     Gate* selected_gate = nullptr;
     Input* selected_input = nullptr;
     Wire* selected_wire = nullptr;
+    Light* selected_light = nullptr;
 
     while (!close) {
         SDL_Event event; 
@@ -73,7 +74,7 @@ int main() {
                 case SDL_MOUSEMOTION:
                     mouse_pos = screen_to_world(event.motion.x, event.motion.y, zoom);
                     
-                    if (mouse_button_down && (selected_gate || selected_input || selected_wire)) {
+                    if (mouse_button_down && (selected_gate || selected_input || selected_wire || selected_light)) {
                         int dx = mouse_pos.x - down_pos.x;
                         int dy = mouse_pos.y - down_pos.y;
                         if (!dragging) {
@@ -98,6 +99,9 @@ int main() {
                                     selected_wire->first = 2;
                                 }
                              
+                            } else if (selected_light) {
+                                selected_light->x = mouse_pos.x - offset_pos.x;
+                                selected_light->y = mouse_pos.y - offset_pos.y;
                             }
                     
                         }
@@ -118,9 +122,17 @@ int main() {
                                 //check to see if mouse is over a gate connector
                                 for (Gate* gate : sim.gates) {
                                     if (point_in_left_half_circle(mouse_pos, gate->pin_in[0].x, gate->pin_in[0].y, PIN_RADIUS)) {
-                                        selected_wire->connect(gate, 0); 
+                                        selected_wire->connect(gate, 0);
+                                        break;
                                     } else if (point_in_left_half_circle(mouse_pos, gate->pin_in[1].x, gate->pin_in[1].y, PIN_RADIUS)) {
-                                        selected_wire->connect(gate, 1); 
+                                        selected_wire->connect(gate, 1);
+                                        break;
+                                    }
+                                }
+
+                                for (Light* light : sim.lights) {
+                                    if (point_in_circle(mouse_pos, light->x, light->y, LIGHT_RADIUS)) {
+                                        selected_wire->connect(light);
                                     }
                                 }
                             }
@@ -132,6 +144,7 @@ int main() {
                     selected_gate = nullptr;
                     selected_input = nullptr;
                     selected_wire = nullptr;
+                    selected_light = nullptr;
                     break;
                 case SDL_MOUSEBUTTONDOWN:
                     if (event.button.button == SDL_BUTTON_LEFT) {
@@ -164,6 +177,31 @@ int main() {
                             break;
                         }
 
+                        for (Input* input : sim.inputs) {
+                            if (point_in_circle(mouse_pos, input->x, input->y, INPUT_RADIUS)) {
+                                selected_input = input;
+                                handled = true;
+                            }
+                        }
+
+                        if (handled) {
+                            break;
+                        }
+
+                        for (Light* light : sim.lights) {
+                            if (point_in_circle(mouse_pos, light->x, light->y, LIGHT_RADIUS)) {
+                                selected_light = light;
+                                handled = true;
+
+                                offset_pos.x = mouse_pos.x - light->x;
+                                offset_pos.y = mouse_pos.y - light->y;
+                            }
+                        }
+
+                        if (handled) {
+                            break;
+                        }
+
                         for (Wire* wire : sim.wires) {
                             //if you click at the end, create a new wire 
                             if (point_in_circle(mouse_pos, wire->end.x, wire->end.y, 10)) {
@@ -184,13 +222,6 @@ int main() {
                         if (handled) {
                             break;
                         }
-
-                        for (Input* input : sim.inputs) {
-                            if (point_in_circle(mouse_pos, input->x, input->y, INPUT_RADIUS)) {
-                                selected_input = input;
-                            }
-                        }
-
                         
                     }
                     break;
@@ -207,6 +238,9 @@ int main() {
                     } else if (event.key.keysym.sym == SDLK_i) {
                         Input* input = new Input(mouse_pos.x, mouse_pos.y);
                         sim.add_input(input);
+                    } else if (event.key.keysym.sym == SDLK_l) {
+                        Light* light = new Light(mouse_pos.x, mouse_pos.y);
+                        sim.add_light(light);
                     }
                     break;
 
