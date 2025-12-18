@@ -243,6 +243,8 @@ int main() {
                         sim.add_light(light);
                     } else if (event.key.keysym.sym == SDLK_r) {
                         sim.clear();
+                    } else if (event.key.keysym.sym == SDLK_s) {
+                        sim.save_state();
                     }
                     break;
 

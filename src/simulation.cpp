@@ -1,4 +1,7 @@
 #include "simulation.h"
+#include <iostream>
+
+using json = nlohmann::json;
 
 Simulation::Simulation() {
     gates = {};
@@ -87,4 +90,37 @@ void Simulation::clear() {
         delete light;
     }
     lights.clear();
+}
+
+void Simulation::save_state() {
+    std::ofstream save_file;
+    save_file.open("save/save_file.json", std::ofstream::trunc);
+    
+    if (!save_file.is_open()) {
+        std::cout << "failed to create save file\n";
+        return;
+    }
+
+    json contents;
+    for (Gate* gate : gates) {
+        std::string type;
+        if (dynamic_cast<And*>(gate)) {
+            type = "And";
+        } else if (dynamic_cast<Or*>(gate)) {
+            type = "Or";
+        } else if (dynamic_cast<Not*>(gate)) {
+            type = "Not";
+        } else {
+            std::cout << "failed to recognize gate type\n";
+            return;
+        }
+        contents["Gate"]["type"] = type;
+        contents["Gate"]["x"] = gate->x;
+        contents["Gate"]["y"] = gate->y;
+        contents["Gate"]["w"] = gate->w;
+        contents["Gate"]["h"] = gate->h;
+    }
+
+    std::string save_state = contents.dump();
+    save_file << save_state;
 }

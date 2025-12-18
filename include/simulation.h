@@ -1,6 +1,8 @@
 #pragma once
 #include <SDL.h>
 #include <vector>
+#include <nlohmann/json.hpp>
+#include <fstream>
 #include "gate.h"
 #include "input.h"
 #include "wire.h"
@@ -21,4 +23,6 @@ public:
     void draw(SDL_Renderer* renderer);
     void simulate();
     void clear();
+    void save_state();
+    void load_state();
 };
