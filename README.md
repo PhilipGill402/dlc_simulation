@@ -55,6 +55,10 @@ make && ./sim
 
 ---
 
+## Saving
+
+The simulation currently supports saving your current state and reloading it. The program uses a JSON file to hold the current state and this state is loaded when called. To save the state just press ```s``` and to load the saved state just press ```v```. Currently you can only have one save state at a time.
+
 ## CONTROLS
 
 ### Mouse Controls
@@ -73,12 +77,14 @@ make && ./sim
 
 | Key | Action |
 |---|---|
-| `R` | Reset simulation (if implemented) |
+| `R` | Reset simulation |
 | `A` | Create an And gate |
 | `O` | Create an Or gate |
 | `N` | Create a Nor gate |
 | `I` | Create an Input node |
 | `L` | Create a Light |
+| `S` | Save the state of the simulation |
+| `V` | Load the saved state of the simulation |
 
 ---
 
@@ -127,7 +133,6 @@ This ensures deterministic and predictable behavior.
 Known limitations may include:
 
 - No wire deletion (yet)
-- No save/load functionality
 - Limited gate types
 
 Report issues by opening a GitHub issue.
