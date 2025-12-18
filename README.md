@@ -59,6 +59,8 @@ make && ./sim
 
 The simulation currently supports saving your current state and reloading it. The program uses a JSON file to hold the current state and this state is loaded when called. To save the state just press ```s``` and to load the saved state just press ```v```. Currently you can only have one save state at a time.
 
+---
+
 ## CONTROLS
 
 ### Mouse Controls
