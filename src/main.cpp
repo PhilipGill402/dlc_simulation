@@ -241,6 +241,8 @@ int main() {
                     } else if (event.key.keysym.sym == SDLK_l) {
                         Light* light = new Light(mouse_pos.x, mouse_pos.y);
                         sim.add_light(light);
+                    } else if (event.key.keysym.sym == SDLK_r) {
+                        sim.clear();
                     }
                     break;
 

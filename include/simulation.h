@@ -20,4 +20,5 @@ public:
     void add_light(Light* light);
     void draw(SDL_Renderer* renderer);
     void simulate();
+    void clear();
 };

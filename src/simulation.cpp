@@ -69,3 +69,10 @@ void Simulation::simulate() {
         light->evaluate();
     }
 }
+
+void Simulation::clear() {
+    gates.clear();
+    inputs.clear();
+    wires.clear();
+    lights.clear();
+}
