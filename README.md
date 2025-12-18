@@ -99,12 +99,6 @@ The simulation currently supports saving your current state and reloading it. Th
 
 ---
 
-### Screenshot: Wire Routing
-<!-- SCREENSHOT: orthogonal wire routing -->
-![Wire routing](screenshots/wire_routing.png)
-
----
-
 ## LOGIC EVALUATION
 
 Each simulation frame:
