@@ -21,9 +21,9 @@ void Input::draw(SDL_Renderer* renderer) {
 
 
     //draws circle
-    for (int w = -radius; w <= radius; w++) {
-        for (int h = -radius; h <= radius; h++) {
-            if (w*w + h*h <= radius*radius) {
+    for (int w = -INPUT_RADIUS; w <= INPUT_RADIUS; w++) {
+        for (int h = -INPUT_RADIUS; h <= INPUT_RADIUS; h++) {
+            if (w*w + h*h <= INPUT_RADIUS*INPUT_RADIUS) {
                 SDL_RenderDrawPoint(renderer, x + w, y + h);
             }
         }

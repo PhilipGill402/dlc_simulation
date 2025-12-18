@@ -2,6 +2,7 @@
 #include <SDL.h>
 #include <sstream>
 #include <vector>
+#include "constants.h"
 
 class Pin {
 public:

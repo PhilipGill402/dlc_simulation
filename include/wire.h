@@ -4,8 +4,6 @@
 #include "input.h"
 #include "gate.h"
 
-constexpr int wire_height = 5;
-
 class Wire {
 public:
     //three possible sources of input 

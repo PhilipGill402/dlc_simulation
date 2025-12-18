@@ -46,9 +46,9 @@ std::string Pin::to_string() {
 
 void Pin::draw(SDL_Renderer* renderer, bool is_left) {
     if (is_left) {
-        draw_left_half_circle(renderer, x, y, 7);
+        draw_left_half_circle(renderer, x, y, PIN_RADIUS);
     } else {
-        draw_right_half_circle(renderer, x, y, 7);
+        draw_right_half_circle(renderer, x, y, PIN_RADIUS);
     }
 }
 
@@ -192,8 +192,8 @@ void Not::draw(SDL_Renderer* renderer) {
 
     //input nodes
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    draw_left_half_circle(renderer, x, y + h/2, 10);
-    draw_right_half_circle(renderer, x+w, y + h/2, 10);
+    draw_left_half_circle(renderer, x, y + h/2, PIN_RADIUS);
+    draw_right_half_circle(renderer, x+w, y + h/2, PIN_RADIUS);
 
     //NOT is red 
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);

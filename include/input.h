@@ -1,8 +1,7 @@
 #pragma once
 #include <SDL.h>
 #include "gate.h"
-
-constexpr int radius = 10;
+#include "constants.h"
 
 class Input {
 public:

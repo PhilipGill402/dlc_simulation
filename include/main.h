@@ -7,3 +7,4 @@
 #include "simulation.h"
 #include "input.h"
 #include "wire.h"
+#include "constants.h"

@@ -24,7 +24,10 @@ bool point_in_right_half_circle(SDL_Point point, int circle_x, int circle_y, int
     return false;
 }
 
-constexpr int drag_threshold = 4;
+SDL_Point screen_to_world(int x, int y, float zoom) {
+    return SDL_Point {(int)std::lround(x / zoom), (int)std::lround(y / zoom)};
+}
+
 
 int main() {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -34,12 +37,12 @@ int main() {
         return 1;
     }
         
-    //width and height constants
-    constexpr int width = 800;
-    constexpr int height = 600;
-
-    SDL_Window* win = SDL_CreateWindow("Simulation", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, 0);
-    SDL_Renderer* rend = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED); 
+    SDL_Window* win = SDL_CreateWindow("Simulation", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, 0);
+    SDL_Renderer* rend = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
+    
+    //set zoom level
+    float zoom = 1.0f;
+    SDL_RenderSetScale(rend, zoom, zoom);
     
     Simulation sim = Simulation();
 
@@ -68,12 +71,13 @@ int main() {
                     close = true;
                     break;
                 case SDL_MOUSEMOTION:
-                    mouse_pos = { event.motion.x, event.motion.y };
+                    mouse_pos = screen_to_world(event.motion.x, event.motion.y, zoom);
+                    
                     if (mouse_button_down && (selected_gate || selected_input || selected_wire)) {
                         int dx = mouse_pos.x - down_pos.x;
                         int dy = mouse_pos.y - down_pos.y;
                         if (!dragging) {
-                            if (dx*dx + dy*dy >= drag_threshold*drag_threshold) {
+                            if (dx*dx + dy*dy >= DRAG_THRESHOLD*DRAG_THRESHOLD) {
                                 if (selected_input) {
                                     selected_wire = new Wire(selected_input);
                                     sim.add_wire(selected_wire);
@@ -103,7 +107,7 @@ int main() {
                     if (mouse_button_down && event.button.button == SDL_BUTTON_LEFT) {
                         if (!dragging) {
                             for (Input* input : sim.inputs) {
-                                if (point_in_circle(mouse_pos, input->x, input->y, 20)) {
+                                if (point_in_circle(mouse_pos, input->x, input->y, INPUT_RADIUS)) {
                                     input->toggle();
                                     break;
                                 }
@@ -113,9 +117,9 @@ int main() {
                             if (selected_wire) {
                                 //check to see if mouse is over a gate connector
                                 for (Gate* gate : sim.gates) {
-                                    if (point_in_left_half_circle(mouse_pos, gate->pin_in[0].x, gate->pin_in[0].y, 10)) {
+                                    if (point_in_left_half_circle(mouse_pos, gate->pin_in[0].x, gate->pin_in[0].y, PIN_RADIUS)) {
                                         selected_wire->connect(gate, 0); 
-                                    } else if (point_in_left_half_circle(mouse_pos, gate->pin_in[1].x, gate->pin_in[1].y, 10)) {
+                                    } else if (point_in_left_half_circle(mouse_pos, gate->pin_in[1].x, gate->pin_in[1].y, PIN_RADIUS)) {
                                         selected_wire->connect(gate, 1); 
                                     }
                                 }
@@ -135,7 +139,7 @@ int main() {
                         dragging = false;
                         bool handled = false;
                         
-                        mouse_pos = { event.button.x, event.button.y };
+                        mouse_pos = screen_to_world(event.button.x, event.button.y, zoom);
                         down_pos = mouse_pos;
 
                         for (Gate* gate : sim.gates) {
@@ -147,7 +151,7 @@ int main() {
                                 offset_pos.x = mouse_pos.x - gate->x;
                                 offset_pos.y = mouse_pos.y - gate->y;
                                 break;
-                            } else if (point_in_right_half_circle(mouse_pos, gate->pin_out.x, gate->pin_out.y, 10)) {
+                            } else if (point_in_right_half_circle(mouse_pos, gate->pin_out.x, gate->pin_out.y, PIN_RADIUS)) {
                                 selected_wire = new Wire(gate);
                                 sim.add_wire(selected_wire);
                                 handled = true;
@@ -182,7 +186,7 @@ int main() {
                         }
 
                         for (Input* input : sim.inputs) {
-                            if (point_in_circle(mouse_pos, input->x, input->y, 10)) {
+                            if (point_in_circle(mouse_pos, input->x, input->y, INPUT_RADIUS)) {
                                 selected_input = input;
                             }
                         }
@@ -205,6 +209,15 @@ int main() {
                         sim.add_input(input);
                     }
                     break;
+
+                case SDL_MOUSEWHEEL:
+                    if (event.wheel.y > 0) {
+                        zoom *= 1.1f;
+                    } else if (event.wheel.y < 0) {
+                        zoom *= 0.9f;
+                    }
+
+                    zoom = SDL_clamp(zoom, 0.1f, 5.0f);
                 default:
                     break;
             }
@@ -216,6 +229,8 @@ int main() {
         sim.draw(rend);
         sim.simulate();
         
+        SDL_RenderSetScale(rend, zoom, zoom);
+
         SDL_RenderPresent(rend); 
     }
 
