@@ -1,4 +1,7 @@
 #include "simulation.h"
+#include <iostream>
+
+using json = nlohmann::json;
 
 using json = nlohmann::json;
 
@@ -136,11 +139,11 @@ void Simulation::save_state() {
     }
     
     json file_contents;
-    
-    //handles gates
-    std::vector<json> gates_data; 
+
+    std::vector<json> gates_data;
     for (Gate* gate : gates) {
-        json gate_data;
+        json gate_data;     
+    
         std::string type;
         if (dynamic_cast<And*>(gate)) {
             type = "And";
@@ -152,6 +155,7 @@ void Simulation::save_state() {
             std::cout << "failed to recognize gate type\n";
             return;
         }
+        
         gate_data["type"] = type;
         gate_data["id"] = gate->id;
         gate_data["x"] = gate->x;

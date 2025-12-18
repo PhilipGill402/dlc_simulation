@@ -1,9 +1,9 @@
 #pragma once
 #include <SDL.h>
 #include <vector>
-#include <iostream>
-#include <fstream>
 #include <nlohmann/json.hpp>
+#include <fstream>
+#include <iostream>
 #include "gate.h"
 #include "input.h"
 #include "wire.h"
