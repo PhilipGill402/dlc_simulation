@@ -165,43 +165,7 @@ void Simulation::draw(SDL_Renderer* renderer) {
 
 void Simulation::simulate() {
     for (Wire* wire : wires) {
-        bool val = false;
-        
-        if (wire->src_type == ObjectType::INPUT) {
-            Input* input;
-            if (!(input = get_input(wire->src_id))) {
-                std::cout << "failed to get source input\n";
-                return;
-            }
-
-            val = input->val;
-        } else if (wire->src_type == ObjectType::GATE) {
-            Gate* gate;
-            if (!(gate = get_gate(wire->src_id))) {
-                std::cout << "failed to get source gate\n";
-                return;
-            }
-
-            val = gate->pin_out.value;
-        }
-        
-        if (wire->dst_type == ObjectType::GATE) {
-            Gate* dst_gate;
-            if (!(dst_gate = get_gate(wire->dst_id))) {
-                std::cout << "failed to get destination gate\n";
-                return;
-            }
-
-            dst_gate->pin_in[wire->dst_idx] = val; 
-        } else if (wire->dst_type == ObjectType::LIGHT) {
-            Light* dst_light;
-            if (!(dst_light = get_light(wire->dst_id))) {
-                std::cout << "failed to get destination light\n";
-                return;
-            }
-
-            dst_light->pin_in.value = val;
-        }
+        wire->evaluate(this); 
     }
 
     for (Gate* gate : gates) {
@@ -322,7 +286,7 @@ void Simulation::save_state() {
 }
 
 void Simulation::load_state() {
-    sim.clear(); 
+    clear(); 
 
     std::ifstream save_file("save/save_file.json");
 

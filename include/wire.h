@@ -43,6 +43,8 @@ public:
     void draw(SDL_Renderer* renderer, const Simulation* sim);
     void connect(Gate* gate, int idx);
     void connect(Light* light);
+    bool get_val(Simulation* sim);
+    void evaluate(Simulation* sim);
     std::array<SDL_Rect, 2> get_rects();
 
     std::string to_string();

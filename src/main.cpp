@@ -239,6 +239,10 @@ int main() {
                         sim.save_state();
                     } else if (event.key.keysym.sym == SDLK_v) {
                         sim.load_state();
+                    } else if (event.key.keysym.sym == SDLK_d) {
+                        for (Gate* gate : sim.gates) {
+                            std::cout << gate->to_string() << "\n";
+                        }
                     }
                     break;
 
@@ -260,7 +264,7 @@ int main() {
         
         sim.draw(rend);
         sim.simulate();
-    
+            
         SDL_RenderSetScale(rend, zoom, zoom);
 
         SDL_RenderPresent(rend); 

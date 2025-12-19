@@ -1,1 +1,203 @@
-
+{
+    "Gates": [
+        {
+            "h": 50,
+            "id": 3,
+            "type": "Or",
+            "w": 100,
+            "x": 283,
+            "y": 123
+        },
+        {
+            "h": 50,
+            "id": 4,
+            "type": "Not",
+            "w": 100,
+            "x": 408,
+            "y": 123
+        },
+        {
+            "h": 50,
+            "id": 5,
+            "type": "Or",
+            "w": 100,
+            "x": 286,
+            "y": 335
+        },
+        {
+            "h": 50,
+            "id": 6,
+            "type": "Not",
+            "w": 100,
+            "x": 410,
+            "y": 336
+        }
+    ],
+    "Inputs": [
+        {
+            "id": 1,
+            "value": false,
+            "x": 71,
+            "y": 138
+        },
+        {
+            "id": 2,
+            "value": false,
+            "x": 76,
+            "y": 351
+        }
+    ],
+    "Lights": [
+        {
+            "id": 7,
+            "value": true,
+            "x": 729,
+            "y": 361
+        }
+    ],
+    "Wires": [
+        {
+            "dst_id": 6,
+            "dst_idx": 0,
+            "dst_type": 1,
+            "end_x": 410,
+            "end_y": 361,
+            "first": 1,
+            "id": 8,
+            "src_id": 5,
+            "src_type": 1,
+            "start_x": 386,
+            "start_y": 360
+        },
+        {
+            "dst_id": 4,
+            "dst_idx": 0,
+            "dst_type": 1,
+            "end_x": 408,
+            "end_y": 148,
+            "first": 1,
+            "id": 9,
+            "src_id": 3,
+            "src_type": 1,
+            "start_x": 383,
+            "start_y": 148
+        },
+        {
+            "dst_id": 3,
+            "dst_idx": 0,
+            "dst_type": 1,
+            "end_x": 283,
+            "end_y": 139,
+            "first": 1,
+            "id": 10,
+            "src_id": 1,
+            "src_type": 0,
+            "start_x": 71,
+            "start_y": 138
+        },
+        {
+            "dst_id": 5,
+            "dst_idx": 0,
+            "dst_type": 1,
+            "end_x": 286,
+            "end_y": 351,
+            "first": 1,
+            "id": 11,
+            "src_id": 2,
+            "src_type": 0,
+            "start_x": 76,
+            "start_y": 351
+        },
+        {
+            "dst_id": 0,
+            "dst_idx": -1,
+            "dst_type": 4,
+            "end_x": 548,
+            "end_y": 261,
+            "first": 1,
+            "id": 12,
+            "src_id": 4,
+            "src_type": 1,
+            "start_x": 508,
+            "start_y": 148
+        },
+        {
+            "dst_id": 0,
+            "dst_idx": -1,
+            "dst_type": 4,
+            "end_x": 176,
+            "end_y": 337,
+            "first": 1,
+            "id": 13,
+            "src_id": 12,
+            "src_type": 2,
+            "start_x": 548,
+            "start_y": 261
+        },
+        {
+            "dst_id": 5,
+            "dst_idx": 1,
+            "dst_type": 1,
+            "end_x": 286,
+            "end_y": 368,
+            "first": 2,
+            "id": 14,
+            "src_id": 13,
+            "src_type": 2,
+            "start_x": 176,
+            "start_y": 337
+        },
+        {
+            "dst_id": 0,
+            "dst_idx": -1,
+            "dst_type": 4,
+            "end_x": 585,
+            "end_y": 217,
+            "first": 1,
+            "id": 15,
+            "src_id": 6,
+            "src_type": 1,
+            "start_x": 510,
+            "start_y": 361
+        },
+        {
+            "dst_id": 0,
+            "dst_idx": -1,
+            "dst_type": 4,
+            "end_x": 209,
+            "end_y": 189,
+            "first": 1,
+            "id": 16,
+            "src_id": 15,
+            "src_type": 2,
+            "start_x": 585,
+            "start_y": 217
+        },
+        {
+            "dst_id": 3,
+            "dst_idx": 1,
+            "dst_type": 1,
+            "end_x": 283,
+            "end_y": 156,
+            "first": 2,
+            "id": 17,
+            "src_id": 16,
+            "src_type": 2,
+            "start_x": 209,
+            "start_y": 189
+        },
+        {
+            "dst_id": 7,
+            "dst_idx": -1,
+            "dst_type": 3,
+            "end_x": 729,
+            "end_y": 361,
+            "first": 1,
+            "id": 18,
+            "src_id": 6,
+            "src_type": 1,
+            "start_x": 510,
+            "start_y": 361
+        }
+    ]
+}

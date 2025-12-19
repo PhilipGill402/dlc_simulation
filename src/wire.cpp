@@ -193,6 +193,60 @@ std::array<SDL_Rect, 2> Wire::get_rects() {
     return rects;
 }
 
+bool Wire::get_val(Simulation* sim) {
+    bool val = false;
+        
+    if (src_type == ObjectType::INPUT) {
+        Input* input;
+        if (!(input = sim->get_input(src_id))) {
+            std::cout << "failed to get source input\n";
+            return false;
+        }
+
+        val = input->val;
+    } else if (src_type == ObjectType::GATE) {
+        Gate* gate;
+        if (!(gate = sim->get_gate(src_id))) {
+            std::cout << "failed to get source gate\n";
+            return false;
+        }
+
+        val = gate->pin_out.value;
+    } else if (src_type == ObjectType::WIRE) {
+        Wire* connected_wire;
+        if (!(connected_wire = sim->get_wire(src_id))) {
+            std::cout << "failed to get source wire\n";
+            return false;
+        }
+
+        val = connected_wire->get_val(sim);
+    }
+
+    return val;
+}
+
+void Wire::evaluate(Simulation* sim) {
+    bool val = get_val(sim); 
+        
+    if (dst_type == ObjectType::GATE) {
+        Gate* dst_gate;
+        if (!(dst_gate = sim->get_gate(dst_id))) {
+            std::cout << "failed to get destination gate\n";
+            return;
+        }
+
+        dst_gate->pin_in[dst_idx] = val; 
+    } else if (dst_type == ObjectType::LIGHT) {
+        Light* dst_light;
+        if (!(dst_light = sim->get_light(dst_id))) {
+            std::cout << "failed to get destination light\n";
+            return;
+        }
+
+        dst_light->pin_in.value = val;
+    }
+}
+
 std::string Wire::to_string() {
     std::stringstream str;
     str << "Wire " << id;
