@@ -21,6 +21,9 @@ The simulation window consists of:
 
 ---
 
+## Dependencies
+This program uses SDL2 for graphics rendering and nlohmann/json for json creation and parsing. **Note:** The makefile was written for MacOs and Homebrew. It must be reconfigured for various operating systems.
+
 ## Running
 
 To compile and run just run:
